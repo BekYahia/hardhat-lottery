@@ -35,7 +35,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     address payable private s_recentWinner;
 
     event RaffleEnter(address indexed player);
-    event RequestedRaffleWinnr(uint256 indexed requestId);
+    event RequestedRaffleWinner(uint256 indexed requestId);
     event WinnerPicked(address indexed winner);
 
     constructor(
@@ -82,7 +82,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
             i_callBackGasLimit,
             NUMBER_OF_WORDS
         );
-        emit RequestedRaffleWinnr(requestId);
+        emit RequestedRaffleWinner(requestId);
     }
 
     function fulfillRandomWords(
@@ -103,7 +103,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         emit WinnerPicked(s_recentWinner);
     }
 
-    function checkUpkeep(bytes memory /* checkData */) public view override
+    function checkUpkeep(bytes memory /* checkData */) public override
         returns (bool upKeepNeed, bytes memory /* performData */) {
 
         bool isOpen = (s_raffleState == RaffleState.Open);
