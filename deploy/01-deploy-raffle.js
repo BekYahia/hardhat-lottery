@@ -9,13 +9,13 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deployer, player } = await getNamedAccounts()
     const networkData = networkConfig[network.config.chainId]
 
-    let vrfCoordinatorAddress, subscriptionId
+    let vrfCoordinatorAddress, subscriptionId, vrfCoordinator
     if(devChains.includes(network.name)) {
         //mock
         const mockedCoordinator = await deployments.get("VRFCoordinatorV2Mock")
         vrfCoordinatorAddress = await mockedCoordinator.address
 
-        const vrfCoordinator = await ethers.getContractAt("VRFCoordinatorV2Mock", vrfCoordinatorAddress)
+        vrfCoordinator = await ethers.getContractAt("VRFCoordinatorV2Mock", vrfCoordinatorAddress)
 
         //create subscription and fund it
         const tx = await vrfCoordinator.createSubscription()
@@ -49,6 +49,9 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     if(!devChains.includes(network.name) && process.env.HRE_ETHERSCAN_KEY) {
         await verify(Raffle.address, args)
     }
+
+    if(devChains.includes(network.name))
+        await vrfCoordinator.addConsumer(Number(subscriptionId), Raffle.address)
 
     log("----------- DONE! -------------")
 };
