@@ -13,6 +13,7 @@ error Raffle__UpKeepNotNeeded(
     uint256 numberOfPlayers,
     uint256 raffleState
 );
+error Raffle__NotOwner();
 
 contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     enum RaffleState {
@@ -31,12 +32,18 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     RaffleState private s_raffleState;
     uint256 private s_lastTimeStamp;
     uint256 private immutable i_interval;
+    address private immutable i_owner;
 
     address payable private s_recentWinner;
 
     event RaffleEnter(address indexed player);
     event RequestedRaffleWinner(uint256 indexed requestId);
     event WinnerPicked(address indexed winner);
+
+    modifier onlyOwner {
+        if(msg.sender != i_owner) revert Raffle__NotOwner();
+        _;
+    }
 
     constructor(
         address vrfCoordinatorV2,
@@ -54,6 +61,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         s_raffleState = RaffleState.Open;
         s_lastTimeStamp = block.timestamp;
         i_interval = interval;
+        i_owner = msg.sender;
     }
 
     function enterRaffle() public payable {
@@ -103,7 +111,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         emit WinnerPicked(s_recentWinner);
     }
 
-    function checkUpkeep(bytes memory /* checkData */) public override
+    function checkUpkeep(bytes memory /* checkData */) public view override
         returns (bool upKeepNeed, bytes memory /* performData */) {
 
         bool isOpen = (s_raffleState == RaffleState.Open);
@@ -111,6 +119,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         bool has_players = (s_players.length > 0);
         bool has_balance = (address(this).balance > 0);
         upKeepNeed = (isOpen && timePased && has_players && has_balance);
+        return (upKeepNeed, "0x");
     }
 
     function getEntranceFee() public view returns (uint256) {
@@ -149,4 +158,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         return i_interval;
     }
 
+    function getOwner() public view returns(address) {
+        return i_owner;
+    }
 }
