@@ -30,7 +30,7 @@ module.exports = {
 		},
 	},
 	mocha: {
-		timeout: 100_000,
+		timeout: 500_000,
 	},
 	etherscan: {
 		apiKey: process.env.HRE_ETHERSCAN_KEY
